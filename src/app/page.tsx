@@ -32,6 +32,10 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { QueryResult } from "@upstash/vector";
+import { Product } from "@/db";
 const SORT_OPTIONS = [
   { name: "None", value: "none" },
   { name: "Price: Low to High", value: "price-asc" },
@@ -41,6 +45,20 @@ const SORT_OPTIONS = [
 export default function Home() {
   const [filter, setFilter] = useState({ sort: "none" });
 
+  const { data: products } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data } = await axios.post<QueryResult<Product>[]>(
+        "http://localhost:3000/api/products",
+        {
+          filter: {
+            sort: filter.sort,
+          },
+        }
+      );
+      return data;
+    },
+  });
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
@@ -114,6 +132,7 @@ export default function Home() {
         </Carousel>
       </div>
       <div className="flex flex-col place-content-between w-full min-h-screen p-4 md:flex-row md:p-10 m-3">
+        {/* Filter search */}
         <aside className="w-full md:w-1/4">
           <Card className="mb-4">
             <CardHeader>
@@ -201,6 +220,7 @@ export default function Home() {
             </CardContent>
           </Card>
         </aside>
+
         <main className="flex-1 md:ml-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
